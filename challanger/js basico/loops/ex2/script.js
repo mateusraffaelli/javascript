@@ -2,12 +2,12 @@ const mixed = [10,4,'c',6,'a',4];
 const newArray = [];
 
 
-for () {
+//for () {
    const current = mixed[i];
    if (typeof current === 'number') {
        newArray.push(current);
    }
-}
+//}
 
 
 console.log(newArray);
