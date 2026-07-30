@@ -2,6 +2,10 @@ const display = document.querySelector('#display')
 
 const teclado = document.querySelector('.keys')
 
+let entradaAtual = '0'
+let operador = null
+let valorAnterior = null
+
 let digitos = [];
 
 teclado.addEventListener('click', (evento) => {
@@ -14,6 +18,7 @@ teclado.addEventListener('click', (evento) => {
 
     if(digito){
         inserirDigito(digito)
+        atualizarDisplay(entradaAtual)
         return
     }
     if(operacao){
@@ -27,18 +32,27 @@ teclado.addEventListener('click', (evento) => {
 })
 
 const inserirDigito = digito => {
-    
-    if(entradaAtual == null || entradaAtual == 0){
+    if(digito === "." && entradaAtual.includes('.'))return
+
+    if(entradaAtual === '0'){
         entradaAtual = digito
-        display.textContent = digito
-    }else{
-        entradaAtual += digito
-        display.textContent += digito
+        return
     }
-    alert(entradaAtual)
+
+    entradaAtual += digito
+}
+
+const atualizarDisplay = (entrada) => {
+    display.textContent = entrada
 }
 
 const registrarOperacao = operacao => {
+    if(operacao === 'raiz' || operacao === 'porcento'){
+        calcularUnaria(operacao)
+        return
+    }
+
+    
     if(operacao == 'adicao'){
         operacao = '+'
     }
@@ -61,21 +75,50 @@ const registrarOperacao = operacao => {
         operacao = ''
     }
     
-    valorAnterior = entradaAtual
-    digitos.push(valorAnterior)
-    entradaAtual = null
+    
 
-    display.textContent += operacao
-    alert(entradaAtual)
-    alert(digitos)
+    
 }
+
+const calcularBinaria = (op) => {
+
+    //resolver
+        valorAnterior = Number(entradaAtual)
+        digitos.push(valorAnterior)
+        operador = op
+        entradaAtual = '0'
+        entradaAtual += op
+        atualizarDisplay(entradaAtual)
+    }
 
 const executarAcao = acao => {
-
-    display.textContent = resultado
+    switch (acao){
+        case 'clear':
+            limparTudo()
+            break
+        case 'backspace':
+            limparUltimo()
+            break
+        case 'sign':
+            break
+        case 'equals':
+            break
+    }
 }
 
-let entradaAtual = '0'
-let operador = null // apaga a entrada atual quando clicado e jogar para : valorAnterior
-let valorAnterior = null
-let resultado
+const limparTudo = () => {
+    entradaAtual = '0'
+    valorAnterior = null
+    operador = null
+    atualizarDisplay(entradaAtual)
+}
+
+const limparUltimo = () => {
+    if(entradaAtual.length == 1){
+        limparTudo()
+    }else{
+        entradaAtual = entradaAtual.slice(0, -1)
+        atualizarDisplay(entradaAtual)
+    }
+}
+
