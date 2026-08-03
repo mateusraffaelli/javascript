@@ -5,8 +5,10 @@ const teclado = document.querySelector('.keys')
 let entradaAtual = '0'
 let operador = null
 let valorAnterior = null
+let resultado = 0;
 
 let digitos = [];
+let operadores = [];
 
 teclado.addEventListener('click', (evento) => {
     const botao = evento.target
@@ -18,7 +20,6 @@ teclado.addEventListener('click', (evento) => {
 
     if(digito){
         inserirDigito(digito)
-        atualizarDisplay(entradaAtual)
         return
     }
     if(operacao){
@@ -40,6 +41,12 @@ const inserirDigito = digito => {
     }
 
     entradaAtual += digito
+    
+    if(entradaAtual < 0){
+        atualizarDisplay('(' + entradaAtual + ')')
+    }else{
+        atualizarDisplay(entradaAtual)
+    }
 }
 
 const atualizarDisplay = (entrada) => {
@@ -55,15 +62,19 @@ const registrarOperacao = operacao => {
     
     if(operacao == 'adicao'){
         operacao = '+'
+        calcularBinaria(operacao)
     }
     if(operacao == 'subtracao'){
         operacao = '-'
+        calcularBinaria(operacao)
     }
     if(operacao == 'multiplicacao'){
         operacao = 'x'
+        calcularBinaria(operacao)
     }
     if(operacao == 'divisao'){
         operacao = '÷'
+        calcularBinaria(operacao)
     }
     if(operacao == 'raiz'){
         operacao = '√'
@@ -86,10 +97,20 @@ const calcularBinaria = (op) => {
         valorAnterior = Number(entradaAtual)
         digitos.push(valorAnterior)
         operador = op
+        operadores.push(op)
         entradaAtual = '0'
         entradaAtual += op
         atualizarDisplay(entradaAtual)
-    }
+        
+        alert(digitos)
+}
+
+const calcularUnaria = (op) => {
+
+}
+
+
+
 
 const executarAcao = acao => {
     switch (acao){
@@ -100,8 +121,10 @@ const executarAcao = acao => {
             limparUltimo()
             break
         case 'sign':
+            mudarSinal()
             break
         case 'equals':
+            calcularResultado()
             break
     }
 }
@@ -120,5 +143,23 @@ const limparUltimo = () => {
         entradaAtual = entradaAtual.slice(0, -1)
         atualizarDisplay(entradaAtual)
     }
+}
+
+const mudarSinal = () => {
+    if(entradaAtual > 0){
+        entradaAtual = (-entradaAtual)
+        atualizarDisplay('(' + entradaAtual + ')')
+        
+    }else if(entradaAtual < 0){
+        entradaAtual = (-entradaAtual)
+        atualizarDisplay(entradaAtual)
+    }
+}
+
+const calcularResultado = () => {
+    for(let i = 0; i < digitos.length; i++){
+        resultado += digitos[i] + operadores[i] + digitos[i+1]
+    }
+    atualizarDisplay(resultado)
 }
 
