@@ -8,7 +8,6 @@ let valorAnterior = null
 let resultado = 0;
 
 let digitos = [];
-let operadores = [];
 
 teclado.addEventListener('click', (evento) => {
     const botao = evento.target
@@ -20,6 +19,11 @@ teclado.addEventListener('click', (evento) => {
 
     if(digito){
         inserirDigito(digito)
+        if(entradaAtual < 0){
+            atualizarDisplay('(' + entradaAtual + ')')
+        }else{
+            atualizarDisplay(entradaAtual)
+        }
         return
     }
     if(operacao){
@@ -39,14 +43,10 @@ const inserirDigito = digito => {
         entradaAtual = digito
         return
     }
-
+    
     entradaAtual += digito
     
-    if(entradaAtual < 0){
-        atualizarDisplay('(' + entradaAtual + ')')
-    }else{
-        atualizarDisplay(entradaAtual)
-    }
+    
 }
 
 const atualizarDisplay = (entrada) => {
@@ -69,11 +69,11 @@ const registrarOperacao = operacao => {
         calcularBinaria(operacao)
     }
     if(operacao == 'multiplicacao'){
-        operacao = 'x'
+        operacao = '*'
         calcularBinaria(operacao)
     }
     if(operacao == 'divisao'){
-        operacao = '÷'
+        operacao = '/'
         calcularBinaria(operacao)
     }
     if(operacao == 'raiz'){
@@ -92,17 +92,28 @@ const registrarOperacao = operacao => {
 }
 
 const calcularBinaria = (op) => {
-
-    //resolver
+    if(display.textContent.slice(-1) == operador){
+        operador = op
+        atualizarDisplay(entradaAtual + op)
+    }else{
         valorAnterior = Number(entradaAtual)
         digitos.push(valorAnterior)
+
+        if(digitos.length == 1){
+            resultado = digitos[0]
+            
+        }else{
+            resultado = eval(`${resultado} ${operador} ${valorAnterior}`); 
+        }
+
         operador = op
-        operadores.push(op)
-        entradaAtual = '0'
         entradaAtual += op
-        atualizarDisplay(entradaAtual)
         
-        alert(digitos)
+        atualizarDisplay(entradaAtual)
+        entradaAtual = '0'
+    }
+
+    
 }
 
 const calcularUnaria = (op) => {
@@ -116,6 +127,7 @@ const executarAcao = acao => {
     switch (acao){
         case 'clear':
             limparTudo()
+            atualizarDisplay(entradaAtual)
             break
         case 'backspace':
             limparUltimo()
@@ -133,7 +145,7 @@ const limparTudo = () => {
     entradaAtual = '0'
     valorAnterior = null
     operador = null
-    atualizarDisplay(entradaAtual)
+    digitos = []
 }
 
 const limparUltimo = () => {
@@ -157,9 +169,19 @@ const mudarSinal = () => {
 }
 
 const calcularResultado = () => {
-    for(let i = 0; i < digitos.length; i++){
-        resultado += digitos[i] + operadores[i] + digitos[i+1]
-    }
-    atualizarDisplay(resultado)
+    // if para divisao e multiplicação por 0
+    // if pra clicar duas vezes seguidas no =
+    entradaAtual = eval(`${resultado} ${operador} ${entradaAtual}`);
+    atualizarDisplay(entradaAtual)
+    valorAnterior = entradaAtual
+    
+    resultado = 0;
+    digitos = [];
+    
+}
+
+const adicionarHistorico = () => {
+    // terminar
+
 }
 
