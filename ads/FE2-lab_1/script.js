@@ -6,8 +6,11 @@ let entradaAtual = '0'
 let operador = null
 let valorAnterior = null
 let resultado = 0;
+let historico = ''
+let contator = 0
 
-let digitos = [];
+let digitos = []
+let operadores = []
 
 teclado.addEventListener('click', (evento) => {
     const botao = evento.target
@@ -98,6 +101,7 @@ const calcularBinaria = (op) => {
     }else{
         valorAnterior = Number(entradaAtual)
         digitos.push(valorAnterior)
+        operadores.push(op)
 
         if(digitos.length == 1){
             resultado = digitos[0]
@@ -117,7 +121,14 @@ const calcularBinaria = (op) => {
 }
 
 const calcularUnaria = (op) => {
+    const valor = Number(entradaAtual)
+    let resultado = 0
 
+    if(op === 'raiz') resultado = Math.sqrt(valor)
+    if(op === 'porcento') resultado = valor / 100
+
+    entradaAtual = String(resultado)
+    atualizarDisplay(entradaAtual)
 }
 
 
@@ -131,6 +142,7 @@ const executarAcao = acao => {
             break
         case 'backspace':
             limparUltimo()
+            atualizarDisplay(entradaAtual)
             break
         case 'sign':
             mudarSinal()
@@ -150,6 +162,7 @@ const limparTudo = () => {
 
 const limparUltimo = () => {
     if(entradaAtual.length == 1){
+        //Dando algum erro
         limparTudo()
     }else{
         entradaAtual = entradaAtual.slice(0, -1)
@@ -169,19 +182,58 @@ const mudarSinal = () => {
 }
 
 const calcularResultado = () => {
-    // if para divisao e multiplicação por 0
-    // if pra clicar duas vezes seguidas no =
-    entradaAtual = eval(`${resultado} ${operador} ${entradaAtual}`);
-    atualizarDisplay(entradaAtual)
-    valorAnterior = entradaAtual
+    // if para divisao por 0
+    // arrumar operação numerica (2*2)+(2*2) = 8, não 12
+    // arrumar caso trocar de operação
+    // Se eu clico em 4, apago e faço uma conta ele considera o 4
+    // Se eu clicar
     
-    resultado = 0;
-    digitos = [];
+    if(digitos.length == 0){
+        digitos.push(entradaAtual)
+        entradaAtual = eval(`${entradaAtual} ${operador} ${valorAnterior}`);
+        
+        
+        digitos.push(valorAnterior)
+        operadores.push(operador)
+    }else{
+        valorAnterior = entradaAtual
+        digitos.push(entradaAtual)
+        entradaAtual = eval(`${resultado} ${operador} ${entradaAtual}`);
+    
+    }
+
+    alert(digitos)
+    alert(entradaAtual)
+    atualizarDisplay(entradaAtual)
+    adicionarHistorico() 
+
+    digitos = []
+    operadores = []
     
 }
 
 const adicionarHistorico = () => {
     // terminar
+    const item = document.createElement('li');
+    const lista = document.querySelector('ol');
 
+    if(contator == 10){
+        lista.lastElementChild.remove();
+        contator--
+    }
+
+    for(let i = 0; i < operadores.length; i++){
+        historico += `${digitos[i]} ${operadores[i]} `
+    }
+    historico += digitos[digitos.length - 1]
+
+    
+    item.textContent = historico;
+    lista.prepend(item)
+
+    historico = ''
+    contator++
+
+    
 }
 
