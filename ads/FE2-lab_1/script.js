@@ -61,8 +61,12 @@ const atualizarDisplay = (entrada) => {
 const registrarOperacao = operacao => {
     if(operacao === 'raiz' || operacao === 'porcento'){
         calcularUnaria(operacao)
+        atualizarDisplay(entradaAtual)
         return
     }
+
+    // if(operacao === 'adicao' || operacao === 'subtracao'  || operacao === 'multiplicacao'
+    // || operacao === 'divisao' || operacao === 'potenciacao')
 
     if(operacao == 'adicao'){
         operacao = '+'
@@ -82,7 +86,8 @@ const registrarOperacao = operacao => {
     }
     
     if(operacao == 'potenciacao'){
-        operacao = ''
+        operacao = '^'
+        calcularBinaria(operacao)
     }
     
 }
@@ -115,13 +120,22 @@ const calcularBinaria = (op) => {
 
 const calcularUnaria = (op) => {
     const valor = Number(entradaAtual)
-    let resultado = 0
+    
 
-    if(op === 'raiz') resultado = Math.sqrt(valor)
-    if(op === 'porcento') resultado = valor / 100
-
+    if(op === 'raiz') {
+        resultado = Math.sqrt(valor)
+        historico = `√${entradaAtual}` 
+    }
+    if(op === 'porcento') {
+        resultado = valor / 100
+        historico = `${entradaAtual}%`
+    }
+    
+    adicionarHistorico()    
     entradaAtual = String(resultado)
-    atualizarDisplay(entradaAtual)
+
+    
+    
 }
 
 
@@ -154,6 +168,7 @@ const limparTudo = () => {
     valorAnterior = null
     operador = null
     digitos = []
+    operadores = []
 }
 
 const limparUltimo = () => {
@@ -180,8 +195,7 @@ const mudarSinal = () => {
 const calcularResultado = () => {
     // if para divisao por 0
     // arrumar operação numerica (2*2)+(2*2) = 8, não 12
-    // arrumar caso trocar de operação
-    // Se eu clico em 4, apago e faço uma conta ele considera o 4
+    // Se eu trocar de operação
     // Potenciação, raiz e porcento.
     
     if(digitos.length == 0){
@@ -215,11 +229,12 @@ const adicionarHistorico = () => {
         contator--
     }
 
-    for(let i = 0; i < operadores.length; i++){
-        historico += `${digitos[i]} ${operadores[i]} `
+    if(digitos.length > 0){
+        for(let i = 0; i < operadores.length; i++){
+            historico += `${digitos[i]} ${operadores[i]} `
+        }
+        historico += digitos[digitos.length - 1]
     }
-    historico += digitos[digitos.length - 1]
-
     
     item.textContent = historico;
     lista.prepend(item)
