@@ -12,7 +12,9 @@ let contator = 0
 let digitos = []
 let operadores = []
 
-teclado.addEventListener('click', (evento) => {
+
+// mudando teclado para document
+document.addEventListener('click', (evento) => {
     const botao = evento.target
     if(!botao) return
 
@@ -62,7 +64,6 @@ const registrarOperacao = operacao => {
         return
     }
 
-    
     if(operacao == 'adicao'){
         operacao = '+'
         calcularBinaria(operacao)
@@ -79,18 +80,10 @@ const registrarOperacao = operacao => {
         operacao = '/'
         calcularBinaria(operacao)
     }
-    if(operacao == 'raiz'){
-        operacao = '√'
-    }
-    if(operacao == 'porcento'){
-        operacao = '%'
-    }
+    
     if(operacao == 'potenciacao'){
         operacao = ''
     }
-    
-    
-
     
 }
 
@@ -150,6 +143,9 @@ const executarAcao = acao => {
         case 'equals':
             calcularResultado()
             break
+        case 'history-clear':
+            limparHistorico()
+            break
     }
 }
 
@@ -186,7 +182,7 @@ const calcularResultado = () => {
     // arrumar operação numerica (2*2)+(2*2) = 8, não 12
     // arrumar caso trocar de operação
     // Se eu clico em 4, apago e faço uma conta ele considera o 4
-    // Se eu clicar
+    // Potenciação, raiz e porcento.
     
     if(digitos.length == 0){
         digitos.push(entradaAtual)
@@ -202,8 +198,6 @@ const calcularResultado = () => {
     
     }
 
-    alert(digitos)
-    alert(entradaAtual)
     atualizarDisplay(entradaAtual)
     adicionarHistorico() 
 
@@ -213,9 +207,8 @@ const calcularResultado = () => {
 }
 
 const adicionarHistorico = () => {
-    // terminar
     const item = document.createElement('li');
-    const lista = document.querySelector('ol');
+    const lista = document.querySelector('#history-list');
 
     if(contator == 10){
         lista.lastElementChild.remove();
@@ -233,7 +226,11 @@ const adicionarHistorico = () => {
 
     historico = ''
     contator++
+}
 
-    
+const limparHistorico = () => {
+    const lista = document.querySelector('#history-list');
+    lista.replaceChildren()
+    contator = 0;
 }
 
