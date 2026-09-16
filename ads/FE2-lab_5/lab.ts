@@ -147,7 +147,7 @@ class Filme extends Midia{
         const clienteEncontrado = this.alugueis.find(p => p.cliente === cliente)
         let multa = 0
 
-        if(!clienteEncontrado) return 0
+        if(!clienteEncontrado) return -1
 
         if(clienteEncontrado){
             const tempo = Date.now() - clienteEncontrado.dataAluguel.getTime()
@@ -160,6 +160,13 @@ class Filme extends Midia{
         
         this.copias ++
         return multa
+    }
+
+    descricao(): string {
+        const msgElenco = this.elenco.map(p => {
+            ` Elenco: ${p.nome} ${p.sobrenome} (${p.nacionalidade})`
+        }).join(';')
+        return `${super.descricao},${msgElenco}`
     }
 }
 
@@ -179,12 +186,44 @@ jogo por até 7 dias sem multa; a partir do 8o dia, é cobrada uma taxa fixa de 
 *
 observação: caso o cliente não tenha alugado o jogo, o método deve retornar -1
 para indicar erro.
+
 – Sobrescrever o método descricao
 * Retorno: string;
 * Comportamento: adicionar "Plataforma: [plataforma]" ao final da descrição
 herdada, separado por vírgula.
 */
 
+class Jogo extends Midia{
+    private plataforma: string
+
+    constructor(titulo: string, copias: number, alugueis: {cliente: Cliente, dataAluguel: Date}[], plataforma: string){
+        super(titulo,copias, alugueis)
+        this.plataforma = plataforma
+    }
+
+    devolver(cliente: Cliente): number {
+        const clienteEncontrado = this.alugueis.find(p => p.cliente === cliente)
+        let multa = 0
+
+        if(!clienteEncontrado) return -1
+
+        if(clienteEncontrado){
+            const tempo = Date.now() - clienteEncontrado.dataAluguel.getTime()
+            const diaEmMilisegundo = 24*60*60*1000
+            if(tempo > (7*diaEmMilisegundo)){
+                multa = 5* Math.ceil((tempo - (5*diaEmMilisegundo))/diaEmMilisegundo)
+            }
+        }
+        
+        
+        this.copias ++
+        return multa
+    }
+
+    descricao(): string {
+        return super.descricao + `, Plataforma: ${this.plataforma}`
+    }
+}
 
 /*
 5. A interface Artista com as seguintes propriedades:
