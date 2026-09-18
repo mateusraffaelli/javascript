@@ -1,11 +1,4 @@
-interface Sala{
-  id: number,
-  nome: string,
-  categoria: "individual" | "grupo" | "laboratorio",
-  preco: number,
-  quantidade: number,
-  disponivel: boolean
-}
+// Escreva o seu código aqui
 
 // **a) Adicionar sala**
 // - Nome da função: `adicionarSala`
@@ -15,7 +8,7 @@ interface Sala{
 //   - se a sala não estiver na lista, adicioná-la;
 //   - se a sala já existir (mesmo `id`), não alterar a lista.
 
-const adicionarSala = (lista: Sala[], sala: Sala): Sala[] => {
+const adicionarSala = (lista, sala) => {
     const salaEncontrada = lista.find(p => p.id === sala.id)
     
     if(!salaEncontrada) return [...lista, sala]
@@ -31,13 +24,12 @@ const adicionarSala = (lista: Sala[], sala: Sala): Sala[] => {
 //   - se a sala não estiver na lista, não alterar a lista;
 //   - se a sala estiver na lista, removê-la.
 
-const removerSala = (lista: Sala[], id: number): Sala[] => {
+const removerSala = (lista, id) => {
     const salaEncontrada = lista.find(p => p.id === id)
 
     if(!salaEncontrada) return lista
 
     return lista.filter(p => p.id !== id)
-    
 }
 
 // **c) Atualizar propriedade da sala**
@@ -53,16 +45,19 @@ const removerSala = (lista: Sala[], id: number): Sala[] => {
 //   - se a propriedade for `id`, se o nome da propriedade ou se o valor não forem válidos, não alterar a lista.
 
 
-const atualizarPropriedadeSala = (lista : Sala[], id :number, propriedade :string, valor :unknown): Sala[] =>{
+const atualizarPropriedadeSala = (lista , id , propriedade, valor) =>{
     const salaEncontrada = lista.find(p => p.id === id)
     const propriedadesCorretas = ['nome', 'categoria', 'preco', 'quantidade', 'disponivel']
+    const categoriasCertas = ['individual', 'grupo' , 'laboratorio']
 
-    if(!salaEncontrada) return lista
+    if(!salaEncontrada) return [...lista]
 
-    if(!propriedadesCorretas.includes(propriedade)) return lista
+    if(!propriedadesCorretas.includes(propriedade)) return [...lista]
 
-    if(typeof salaEncontrada[propriedade as keyof Sala] !== typeof valor) return lista
+    if(propriedade === 'categoria' && !categoriasCertas.includes(valor)) return [...lista]
 
+    if(typeof salaEncontrada[propriedade] !== typeof valor) return [...lista]
+    
     return lista.map(p => p.id === id ? {...p,[propriedade]: valor} : p )
 }
 
@@ -77,7 +72,7 @@ const atualizarPropriedadeSala = (lista : Sala[], id :number, propriedade :strin
 //   - se `disponibilidade` for `false`, considerar apenas as salas indisponíveis (`disponivel === false`);
 //   - se não houver salas que atendam ao critério, retornar `0`.
 
-const calcularTotalPorDisponibilidade = (lista : Sala[], disponibilidade: boolean | undefined): number => {
+const calcularTotalPorDisponibilidade = (lista , disponibilidade) => {
     
     if(disponibilidade === undefined) return lista.reduce((acumulador, salaAtual) => {return acumulador + salaAtual.preco * salaAtual.quantidade}, 0)
 
@@ -105,7 +100,7 @@ const calcularTotalPorDisponibilidade = (lista : Sala[], disponibilidade: boolea
 //   - o nome pode estar em maiúsculas ou minúsculas;
 //   - se a sala não for encontrada, retornar `null`.
 
-const buscarPorNome = (lista : Sala[], nome: string): Sala | null => {
+const buscarPorNome = (lista , nome)=> {
     const salaEncontrada = lista.find(p => p.nome.toLocaleLowerCase() === nome.toLocaleLowerCase())
 
     if(!salaEncontrada) return null
@@ -121,7 +116,7 @@ const buscarPorNome = (lista : Sala[], nome: string): Sala | null => {
 //   - caso a sala esteja com `disponivel === true`, o texto disponível deve ser `"sim"`;
 //   - caso contrário, deve ser `"não"`.
 
-const listarResumosSalas = (lista : Sala[]): string[] => {
+const listarResumosSalas = (lista) => {
     return lista.map( p => `ID: ${p.id}, ${p.nome} (${p.categoria}) - R$ ${p.preco * p.quantidade} - disponível: ${p.disponivel ? 'sim' : 'não'}`)
 }
 
@@ -130,6 +125,17 @@ const listarResumosSalas = (lista : Sala[]): string[] => {
 // - Parâmetros: `lista` (`Sala[]`)
 // - Retorno: `Sala[]` — nova lista apenas com as salas que ainda estão disponíveis para reserva.
 
-const limparIndisponiveis = (lista : Sala[]): Sala[] => {
+const limparIndisponiveis = (lista) => {
     return lista.filter(p => p.disponivel)
 }
+
+// Não altere esse código
+export {
+  adicionarSala,
+  removerSala,
+  atualizarPropriedadeSala,
+  calcularTotalPorDisponibilidade,
+  buscarPorNome,
+  listarResumosSalas,
+  limparIndisponiveis,
+};

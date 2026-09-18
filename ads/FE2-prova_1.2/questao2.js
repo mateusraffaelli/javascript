@@ -1,142 +1,161 @@
-// **a) O tipo `Sala`** (documentado via JSDoc), que representa o formato comum de sala utilizado pelas duas questões:
-// - Propriedades:
-//   - `id` (number);
-//   - `nome` (string);
-//   - `categoria` (`"individual" | "grupo" | "laboratorio"`);
-//   - `preco` (number);
-//   - `quantidade` (number);
-//   - `disponivel` (boolean).
-// - Esse formato deve representar exatamente o mesmo objeto manipulado pelas funções da primeira questão.
+/**
+ * Formato comum de sala, usado tanto pela primeira quanto pela segunda questão.
+ * @typedef {Object} Sala
+ * @property {number} id - Identificador da sala.
+ * @property {string} nome - Nome da sala.
+ * @property {"individual"|"grupo"|"laboratorio"} categoria - Categoria da sala.
+ * @property {number} preco - Valor por hora da reserva.
+ * @property {number} quantidade - Quantidade de horários disponíveis.
+ * @property {boolean} disponivel - Indica se a sala está liberada para reservas.
+ */
 
-class Sala {
-    constructor(id, nome, categoria, preco, quantidade, disponivel){
-        this.id = id; 
-        this.nome = nome;
-        this.categoria = categoria;
-        this.preco = preco;
-        this.quantidade = quantidade;
-        this.disponivel = disponivel
-    }
-}
+/**
+ * Recurso associado a uma sala de grupo (ex: projetor, quadro, etc).
+ * @typedef {Object} Recurso
+ * @property {string} nome - Nome do recurso.
+ * @property {string} tipo - Tipo do recurso.
+ * @property {string} localizacao - Localização do recurso.
+ */
 
-// **b) Uma classe "abstrata" `SalaReservavel`** (simule a abstração impedindo a instanciação direta, por exemplo verificando `new.target` no construtor):
-// - Propriedades (protegidas — por convenção, sem `#`, já que JS não tem `protected` nativo):
-//   - `id` (number): identificador da sala;
-//   - `nome` (string): nome da sala;
-//   - `categoria` (`"individual" | "grupo" | "laboratorio"`): categoria da sala;
-//   - `preco` (number): valor por hora da reserva;
-//   - `quantidade` (number): quantidade de horários disponíveis;
-//   - `disponivel` (boolean): indica se a sala está liberada para reservas;
-//   - `reservas` (lista de objetos `{ usuario: Usuario }`): registra as reservas atuais da sala.
-// - Construtor: deve receber um objeto no formato `Sala` e inicializar as propriedades da classe.
-// - Métodos:
-//   - `descricao()`
-//     - Parâmetros: nenhum;
-//     - Retorno: `string`;
-//     - Comportamento: retorna uma descrição da sala no formato: `"ID: [id], [nome] ([categoria]) - R$ [preco] por hora - horários disponíveis: [quantidade] - disponível: [sim/não]"`.
-//   - `reservar(usuario)`
-//     - Parâmetros: `usuario` (instância de `Usuario`);
-//     - Retorno: `boolean` indicando se a operação foi bem-sucedida;
-//     - Comportamento:
-//       - permite reservar se a sala estiver disponível e houver horários disponíveis;
-//       - decrementa o valor de `quantidade` em caso de sucesso;
-//       - define `disponivel` como `false` se `quantidade` for igual a `0` após a reserva;
-//       - registra a reserva com o usuário informado;
-//       - um mesmo usuário não pode reservar a mesma sala mais de uma vez simultaneamente (não pode ter duas reservas abertas da mesma sala).
-//   - `encerrarReserva(usuario)` (abstrato — lance um erro na classe base indicando que deve ser sobrescrito)
-//     - Parâmetros: `usuario` (instância de `Usuario`);
-//     - Retorno: `number`.
-//   - `toSala()`
-//     - Parâmetros: nenhum;
-//     - Retorno: objeto no formato `Sala`;
-//     - Comportamento: retorna um objeto no mesmo formato do tipo `Sala`, refletindo o estado atual da sala reservável, especialmente os valores atualizados de `quantidade` e `disponivel`.
-
+/**
+ * Classe "abstrata": não pode ser instanciada diretamente (ver checagem de
+ * new.target no construtor). Deve ser estendida por classes concretas como
+ * SalaGrupo.
+ */
 class SalaReservavel {
-    constructor(sala){
-        this.id = sala.id; 
+    /**
+     * @param {Sala} sala - Objeto no formato Sala com os dados iniciais.
+     */
+    constructor(sala) {
+        if (new.target === SalaReservavel) {
+            throw new Error("SalaReservavel é abstrata e não pode ser instanciada diretamente.");
+        }
+
+        this.id = sala.id;
         this.nome = sala.nome;
         this.categoria = sala.categoria;
         this.preco = sala.preco;
         this.quantidade = sala.quantidade;
-        this.disponivel = sala.disponivel
+        this.disponivel = sala.disponivel;
+        /** @type {{ usuario: Usuario }[]} */
+        this.reservas = [];
+    }
+
+    /**
+     * @returns {string}
+     */
+    descricao() {
+        return `ID: ${this.id}, ${this.nome} (${this.categoria}) - R$ ${this.preco} por hora - horários disponíveis: ${this.quantidade} - disponível: ${this.disponivel ? 'sim' : 'não'}`;
+    }
+
+    /**
+     * @param {Usuario} usuario
+     * @returns {boolean}
+     */
+    reservar(usuario) {
+        if (!this.disponivel || this.quantidade === 0) return false;
+
+        // Um mesmo usuário não pode ter duas reservas abertas da mesma sala.
+        const jaReservou = this.reservas.some(r => r.usuario === usuario);
+        if (jaReservou) return false;
+
+        this.quantidade--;
+        if (this.quantidade === 0) {
+            this.disponivel = false;
+        }
+        this.reservas.push({ usuario });
+        return true;
+    }
+
+    /**
+     * Método abstrato: deve ser sobrescrito pelas subclasses.
+     * @param {Usuario} usuario
+     * @returns {number}
+     */
+    encerrarReserva(usuario) {
+        throw new Error("O método encerrarReserva deve ser sobrescrito pela subclasse.");
+    }
+
+
+    toSala() {
+        return {
+            id: this.id,
+            nome: this.nome,
+            categoria: this.categoria,
+            preco: this.preco,
+            quantidade: this.quantidade,
+            disponivel: this.disponivel
+        };
+    }
+}
+
+class SalaGrupo extends SalaReservavel {
+    #recursos;
+
+    constructor(sala, recursos = []) {
+        if (sala.categoria !== "grupo") {
+            throw new Error("SalaGrupo exige uma sala com categoria 'grupo'.");
+        }
+        super(sala);
+        this.#recursos = recursos;
     }
 
     
+    encerrarReserva(usuario) {
+        const indice = this.reservas.findIndex(r => r.usuario === usuario);
+        if (indice === -1) return -1;
+
+        this.reservas.splice(indice, 1);
+        this.quantidade++;
+        if (this.quantidade > 0) {
+            this.disponivel = true;
+        }
+        return 0;
+    }
+
+    
+    descricao() {
+        const base = super.descricao();
+        const recursosTexto = this.#recursos
+            .map(r => `Recursos: ${r.nome} ${r.tipo} (${r.localizacao})`)
+            .join('; ');
+        return `${base}, ${recursosTexto}`;
+    }
 }
 
+class Usuario {
+    #nome;
+    #codigo;
+    static #codigos = [];
 
-// **c) A classe `SalaGrupo` que estende `SalaReservavel`:**
-// - Propriedade (privada, use `#recursos`):
-//   - `recursos` (lista de objetos do tipo `Recurso`).
-// - Construtor: deve receber um objeto no formato `Sala` com `categoria` igual a `"grupo"` e inicializar as propriedades herdadas e a propriedade da classe.
-// - Métodos:
-//   - Implementar o método `encerrarReserva(usuario)`
-//     - Retorno: `0` se a reserva for encerrada com sucesso ou `-1` para indicar erro;
-//     - Comportamento: encerra a reserva aberta do usuário informado, remove essa reserva da lista de reservas da sala e incrementa o valor de `quantidade`;
-//     - define `disponivel` como `true` se `quantidade` for maior que `0` após o encerramento da reserva;
-//     - observação: caso o usuário não tenha reservado a sala de grupo, o método deve retornar `-1` para indicar erro. Não é necessário calcular multa nem consultar a hora atual neste método.
-//   - Sobrescrever o método `descricao()`
-//     - Retorno: `string`;
-//     - Comportamento: adicionar ao final da descrição herdada, separado por vírgula, o texto: `"Recursos: [nome] [tipo] ([localizacao])"`;
-//     - todos os recursos da lista `recursos` devem ser listados, separados por ponto e vírgula.
-
-// **d) A classe `Usuario`**, que representa um usuário do sistema de reservas:
-// - Propriedades (privadas, use `#nome`, `#codigo`, `#codigos`):
-//   - `nome` (string): nome do usuário;
-//   - `codigo` (number): código do usuário, que deve ser único;
-//   - `codigos` (`number[]` — estática): lista de códigos já utilizados para garantir unicidade.
-// - Construtor: deve inicializar as propriedades da classe, garantindo que `codigo` seja único.
-// - Métodos:
-//   - getters para `nome` e `codigo`;
-//   - getter estático para `codigos`;
-//   - `gerarCodigo()` (estático)
-//     - Parâmetros: nenhum;
-//     - Retorno: `number`;
-//     - Comportamento: gera um código único para um novo usuário.
-
-class Usuario{
-    #nome
-    #codigo
-    static #codigos = []
-
-    constructor(nome){
-        this.#nome = nome
-        this.#codigo = Usuario.gerarCodigo()
+    constructor(nome) {
+        this.#nome = nome;
+        this.#codigo = Usuario.gerarCodigo();
     }
 
-    get nome(){
-        return this.#nome
+    get nome() {
+        return this.#nome;
     }
 
-    get codigo(){
-        return this.#codigo
+    get codigo() {
+        return this.#codigo;
     }
 
-    static get codigos(){
-        return this.#codigos
+    static get codigos() {
+        // Retorna uma cópia para não permitir alteração externa do array privado.
+        return [...Usuario.#codigos];
     }
 
-    static gerarCodigo(){
-        let numeroAleatorio = Math.random()
+    static gerarCodigo() {
+        let numeroAleatorio = Math.floor(Math.random() * 1_000_000);
 
-        while(this.#codigos.include(numeroAleatorio)){
-            numeroAleatorio = Math.random()
+        while (Usuario.#codigos.includes(numeroAleatorio)) {
+            numeroAleatorio = Math.floor(Math.random() * 1_000_000);
         }
 
-        this.#codigos.push()
-        return numeroAleatorio
+        Usuario.#codigos.push(numeroAleatorio);
+        return numeroAleatorio;
     }
 }
 
-// **e) O tipo `Recurso`** (documentado via JSDoc), com as seguintes propriedades:
-// - `nome` (string);
-// - `tipo` (string);
-// - `localizacao` (string).
-
-class Recurso{
-    constructor(nome, tipo, localizacao){
-        this.nome = nome;
-        this.tipo = tipo;
-        this.localizacao = localizacao;
-    }
-}
+export { SalaReservavel, SalaGrupo, Usuario };
